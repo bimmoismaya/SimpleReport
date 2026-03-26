@@ -1,76 +1,175 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
-    <title>QA Dashboard - Percentage Mode</title>
+    <title>QA Dashboard - Updated Table & Filename</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
-        .container { max-width: 1200px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        
-        /* Upload Area */
-        .upload-box { border: 2px dashed #1a73e8; padding: 30px; text-align: center; border-radius: 10px; background: #f8fbff; margin-bottom: 30px; cursor: pointer; transition: 0.3s; }
-        .upload-box:hover { background: #eef5ff; border-color: #0d47a1; }
-        input[type="file"] { display: none; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
 
-        /* Stats Cards */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; display: none; }
-        .stat-card { padding: 20px; border-radius: 12px; text-align: center; color: white; position: relative; }
-        .pass { background: #2ecc71; }
-        .fail { background: #e74c3c; }
-        .pending { background: #f1c40f; color: #333; }
-        .blocker { background: #34495e; }
-        
-        .stat-card h4 { margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; }
-        .stat-card .percent { display: block; font-size: 32px; font-weight: bold; margin: 5px 0; }
-        .stat-card .count { font-size: 13px; opacity: 0.8; font-weight: 500; }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
 
-        /* Table */
-        .table-wrap { overflow-x: auto; display: none; margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; background: white; font-size: 13px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; vertical-align: top; }
-        th { background: #f8f9fa; color: #555; position: sticky; top: 0; }
-        
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; color: white; font-weight: bold; text-transform: uppercase; }
-        #status-info { text-align: center; margin-bottom: 15px; font-weight: bold; color: #1a73e8; }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .upload-box {
+            border: 2px dashed #1a73e8;
+            padding: 25px;
+            text-align: center;
+            border-radius: 10px;
+            background: #f8fbff;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .upload-box:hover {
+            background: #eef5ff;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+            display: none;
+        }
+
+        .stat-card {
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            color: white;
+        }
+
+        .pass {
+            background: #2ecc71;
+        }
+
+        .fail {
+            background: #e74c3c;
+        }
+
+        .pending {
+            background: #f1c40f;
+            color: #333;
+        }
+
+        .blocker {
+            background: #34495e;
+        }
+
+        .stat-card .percent {
+            display: block;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .report-box {
+            margin-top: 30px;
+            padding: 20px;
+            background: #fffbe6;
+            border-left: 5px solid #f1c40f;
+            border-radius: 8px;
+            display: none;
+        }
+
+        #textReport {
+            font-style: italic;
+            color: #555;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            display: none;
+            margin-top: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            color: #555;
+            font-weight: bold;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <h2 style="text-align:center;">QA Scenario Analytics Dashboard</h2>
-    
-    <div class="upload-box" onclick="document.getElementById('excelFile').click()">
-        <p id="status-info">Klik untuk upload file <b>Test Scenario.xlsx</b></p>
-        <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="handleFile(event)">
-    </div>
-
-    <div id="reportView">
-        <div class="stats-grid" id="statsGrid">
-            <div class="stat-card pass">
-                <h4>PASS Rate</h4>
-                <span class="percent" id="p-pass">0%</span>
-                <span class="count" id="c-pass">0 Scenarios</span>
-            </div>
-            <div class="stat-card fail">
-                <h4>FAIL Rate</h4>
-                <span class="percent" id="p-fail">0%</span>
-                <span class="count" id="c-fail">0 Scenarios</span>
-            </div>
-            <div class="stat-card pending">
-                <h4>PENDING Rate</h4>
-                <span class="percent" id="p-pending">0%</span>
-                <span class="count" id="c-pending">0 Scenarios</span>
-            </div>
-            <div class="stat-card blocker">
-                <h4>BLOCKER Rate</h4>
-                <span class="percent" id="p-blocker">0%</span>
-                <span class="count" id="c-blocker">0 Scenarios</span>
+    <div class="container">
+        <div class="header">
+            <h2>QA Scenario Executive Dashboard</h2>
+            <div class="upload-box" onclick="document.getElementById('excelFile').click()">
+                <p id="status-info">Silakan upload file Excel Anda</p>
+                <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="handleFile(event)">
             </div>
         </div>
 
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card pass">
+                <h4>Pass Rate</h4><span class="percent" id="p-pass">0%</span><small id="c-pass">0</small>
+            </div>
+            <div class="stat-card fail">
+                <h4>Fail Rate</h4><span class="percent" id="p-fail">0%</span><small id="c-fail">0</small>
+            </div>
+            <div class="stat-card pending">
+                <h4>Pending Rate</h4><span class="percent" id="p-pending">0%</span><small id="c-pending">0</small>
+            </div>
+            <div class="stat-card blocker">
+                <h4>Blocker Rate</h4><span class="percent" id="p-blocker">0%</span><small id="c-blocker">0</small>
+            </div>
+        </div>
+
+        <div class="report-box" id="reportBox">
+            <h3>📝 Executive Summary Report</h3>
+            <p id="textReport"></p>
+            <button onclick="copyReport()" style="margin-top:10px; padding:5px 10px; cursor:pointer;">Copy Text</button>
+        </div>
+
         <div class="table-wrap" id="tableWrap">
-            <h3 style="border-left: 5px solid #1a73e8; padding-left: 10px; margin-bottom: 15px;">Detailed Bug Records</h3>
+            <h3>Detailed Bug Records</h3>
             <table>
                 <thead>
                     <tr>
@@ -86,83 +185,992 @@
             </table>
         </div>
     </div>
-</div>
 
-<script>
-    function handleFile(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+    <script>
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-        document.getElementById('status-info').innerText = "Processing: " + file.name;
-        const reader = new FileReader();
+            // Membersihkan nama file sesuai permintaan (menghapus Test, Skenario, Scenario)
+            let rawName = file.name.replace(/\.[^/.]+$/, "");
+            let cleanName = rawName.replace(/test|skenario|scenario/gi, "").trim();
 
-        reader.onload = function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
+            document.getElementById('status-info').innerText = "Processing: " + file.name;
+            const reader = new FileReader();
 
-            // 1. PROSES TAB STATISTIC
-            const wsStats = workbook.Sheets["Statistic"];
-            if (wsStats) {
-                // Mengambil nilai angka (Count) dari C9, C11, C13, C15
-                // Mengambil nilai persen dari C10, C12, C14, C16
-                updateStat('pass', wsStats, 'C10', 'C9');
-                updateStat('fail', wsStats, 'C12', 'C11');
-                updateStat('pending', wsStats, 'C14', 'C13');
-                updateStat('blocker', wsStats, 'C16', 'C15');
-                
-                document.getElementById('statsGrid').style.display = 'grid';
-            }
+            reader.onload = function (e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
 
-            // 2. PROSES TAB BUG LIST
-            const wsBugs = workbook.Sheets["Bug List"];
-            if (wsBugs) {
-                const bugJson = XLSX.utils.sheet_to_json(wsBugs, {header: "A"});
-                const tbody = document.getElementById('bugBody');
-                tbody.innerHTML = '';
+                let stats = { pass: 0, fail: 0, pending: 0, blocker: 0, pPass: '0%', pFail: '0%' };
+                let bugs = { total: 0, critical: 0 };
 
-                bugJson.slice(1).forEach(row => {
-                    if (row.D) { 
-                        tbody.innerHTML += `
+                const wsStats = workbook.Sheets["Statistic"];
+                if (wsStats) {
+                    stats.totalScenario = getCellValue(wsStats, 'C8');
+                    stats.pass = getCellValue(wsStats, 'C9');
+                    stats.pPass = formatPercent(getCellValue(wsStats, 'C10'));
+                    stats.fail = getCellValue(wsStats, 'C11');
+                    stats.pFail = formatPercent(getCellValue(wsStats, 'C12'));
+                    stats.pending = getCellValue(wsStats, 'C13');
+                    stats.pPending = formatPercent(getCellValue(wsStats, 'C14'));
+                    stats.blocker = getCellValue(wsStats, 'C15');
+                    stats.pBlocker = formatPercent(getCellValue(wsStats, 'C16'));
+                    renderStatsUI(stats);
+                }
+
+                const wsBugs = workbook.Sheets["Bug List"];
+                if (wsBugs) {
+                    const bugJson = XLSX.utils.sheet_to_json(wsBugs, { header: "A" });
+                    const tbody = document.getElementById('bugBody');
+                    tbody.innerHTML = '';
+
+                    bugJson.slice(1).forEach(row => {
+                        if (row.D) { // Kolom D sebagai ID
+                            bugs.total++;
+                            if ((row.F || '').toLowerCase().includes('crit')) bugs.critical++;
+
+                            // Mapping kolom sesuai urutan header baru:
+                            // D: ID, F: Severity, G: Assign To, K: Actual Result, I: Report By (Asumsi), O: Status
+                            tbody.innerHTML += `<tr>
+                            <td><b>${row.D}</b></td>
+                            <td><span class="badge" style="background:${getSevCol(row.F)}">${row.F || ''}</span></td>
+                            <td>${row.G || '-'}</td>
+                            <td><small style="color:#666">${row.K || '-'}</small></td>
+                            <td>${row.I || '-'}</td>
+                            <td><b>${row.O || '-'}</b></td>
+                        </tr>`;
+                        }
+                    });
+                    document.getElementById('tableWrap').style.display = 'block';
+                }
+
+                generateParagraph(stats, bugs, cleanName);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function generateParagraph(s, b, fileName) {
+            const report = <p>`ijin menyampaikan hasil pengujian baru dari ${fileName}`</p> +
+                           <p>`Number of Test Case`</p>+
+                           <p>`(${s.totalScenario})`</p>+
+                           <p>`Pass Rate sebesar ${s.pPass} (${s.pass} skenario lulus). ` +
+                           `Saat ini terdapat ${s.fail} skenario FAIL (${s.pFail}) dan ${s.blocker} skenario BLOCKER yang menghambat jalannya testing. ` +
+                           `Ditemukan total ${b.total} temuan bug, di mana ${b.critical} di antaranya berkategori CRITICAL. ` +
+                           `Seluruh bug telah tercatat dan sedang dalam tahap penanganan oleh masing-masing PIC (Assign To).`;
+
+            document.getElementById('textReport').innerText = report;
+            document.getElementById('reportBox').style.display = 'block';
+        }
+
+        function renderStatsUI(s) {
+            document.getElementById('p-pass').innerText = s.pPass;
+            document.getElementById('c-pass').innerText = s.pass + " Scenarios";
+            document.getElementById('p-fail').innerText = s.pFail;
+            document.getElementById('c-fail').innerText = s.fail + " Scenarios";
+            document.getElementById('p-pending').innerText = s.pPending;
+            document.getElementById('c-pending').innerText = s.pending + " Scenarios";
+            document.getElementById('p-blocker').innerText = s.pBlocker;
+            document.getElementById('c-blocker').innerText = s.blocker + " Scenarios";
+            document.getElementById('statsGrid').style.display = 'grid';
+        }
+
+        function formatPercent(val) {
+            if (typeof val === 'number') return (val * 100).toFixed(1) + '%';
+            return val || '0%';
+        }
+
+        function getCellValue(sheet, addr) {
+            return sheet[addr] ? sheet[addr].v : 0;
+        }
+
+        function getSevCol(s) {
+            const v = (s || '').toLowerCase();
+            if (v.includes('crit')) return '#e74c3c';
+            if (v.includes('high') || v.includes('major')) return '#e67e22';
+            return '#95a5a6';
+        }
+
+        function copyReport() {
+            const text = document.getElementById('textReport').innerText;
+            navigator.clipboard.writeText(text);
+            alert("Report berhasil disalin ke clipboard!");
+        }
+    </script>
+</body>
+
+</html> -->
+
+
+<!-- 
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>QA Analytics Dashboard - Final Version</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header & Upload */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .upload-box {
+            border: 2px dashed #1a73e8;
+            padding: 25px;
+            text-align: center;
+            border-radius: 10px;
+            background: #f8fbff;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .upload-box:hover {
+            background: #eef5ff;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+            display: none;
+        }
+
+        .stat-card {
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            color: white;
+        }
+
+        .pass {
+            background: #2ecc71;
+        }
+
+        .fail {
+            background: #e74c3c;
+        }
+
+        .pending {
+            background: #f1c40f;
+            color: #333;
+        }
+
+        .blocker {
+            background: #34495e;
+        }
+
+        .stat-card h4 {
+            margin: 0;
+            font-size: 11px;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        .stat-card .percent {
+            display: block;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        /* Paragraph Report Section */
+        .report-box {
+            margin-top: 30px;
+            padding: 20px;
+            background: #fffbe6;
+            border-left: 5px solid #f1c40f;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .report-box h3 {
+            margin-top: 0;
+            color: #856404;
+            font-size: 16px;
+        }
+
+        #textReport {
+            font-style: italic;
+            color: #555;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+
+        /* Table Section */
+        .table-wrap {
+            overflow-x: auto;
+            display: none;
+            margin-top: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            position: sticky;
+            top: 0;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h2>QA Scenario Executive Dashboard</h2>
+            <div class="upload-box" onclick="document.getElementById('excelFile').click()">
+                <p id="status-info">Silakan upload file <b>Test Scenario.xlsx</b> Anda</p>
+                <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="handleFile(event)">
+            </div>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card pass">
+                <h4>Pass Rate</h4><span class="percent" id="p-pass">0%</span><small id="c-pass">0</small>
+            </div>
+            <div class="stat-card fail">
+                <h4>Fail Rate</h4><span class="percent" id="p-fail">0%</span><small id="c-fail">0</small>
+            </div>
+            <div class="stat-card pending">
+                <h4>Pending Rate</h4><span class="percent" id="p-pending">0%</span><small id="c-pending">0</small>
+            </div>
+            <div class="stat-card blocker">
+                <h4>Blocker Rate</h4><span class="percent" id="p-blocker">0%</span><small id="c-blocker">0</small>
+            </div>
+        </div>
+
+        <div class="report-box" id="reportBox">
+            <h3>📝 Executive Summary Report</h3>
+            <p id="textReport"></p>
+            <button onclick="copyReport()" style="margin-top:10px; padding:5px 10px; cursor:pointer;">Copy Text</button>
+        </div>
+
+        <div class="table-wrap" id="tableWrap">
+            <h3>Detailed Bug Records</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Severity</th>
+                        <th>Assign To</th>
+                        <th>Actual Result</th>
+                        <th>Report By</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="bugBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            document.getElementById('status-info').innerText = "Processing: " + file.name;
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                // Variabel penampung untuk Report
+                let stats = { pass: 0, fail: 0, pending: 0, blocker: 0, pPass: '0%', pFail: '0%' };
+                let bugs = { total: 0, critical: 0, list: [] };
+
+                // 1. Baca Tab Statistic
+                const wsStats = workbook.Sheets["Statistic"];
+                if (wsStats) {
+                    stats.pass = getCellValue(wsStats, 'C9');
+                    stats.pPass = formatPercent(getCellValue(wsStats, 'C10'));
+                    stats.fail = getCellValue(wsStats, 'C11');
+                    stats.pFail = formatPercent(getCellValue(wsStats, 'C12'));
+                    stats.pending = getCellValue(wsStats, 'C13');
+                    stats.pPending = formatPercent(getCellValue(wsStats, 'C14'));
+                    stats.blocker = getCellValue(wsStats, 'C15');
+                    stats.pBlocker = formatPercent(getCellValue(wsStats, 'C16'));
+
+                    renderStatsUI(stats);
+                }
+
+                // 2. Baca Tab Bug List
+                const wsBugs = workbook.Sheets["Bug List"];
+                if (wsBugs) {
+                    const bugJson = XLSX.utils.sheet_to_json(wsBugs, { header: "A" });
+                    const tbody = document.getElementById('bugBody');
+                    tbody.innerHTML = '';
+
+                    bugJson.slice(1).forEach(row => {
+                        if (row.D) {
+                            bugs.total++;
+                            if ((row.F || '').toLowerCase().includes('crit')) bugs.critical++;
+
+                            tbody.innerHTML += `
                             <tr>
                                 <td><b>${row.D}</b></td>
                                 <td><span class="badge" style="background:${getSevCol(row.F)}">${row.F || ''}</span></td>
                                 <td>${row.H || '-'}</td>
-                                <td><small style="color:#666">${row.K || '-'}</small></td>
+                                <td><small>${row.K || '-'}</small></td>
                                 <td>${row.G || '-'}</td>
                                 <td><b>${row.O || '-'}</b></td>
                             </tr>
                         `;
+                        }
+                    });
+                    document.getElementById('tableWrap').style.display = 'block';
+                }
+
+                // 3. Generate Paragraf Report
+                generateParagraph(stats, bugs);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function renderStatsUI(s) {
+            document.getElementById('p-pass').innerText = s.pPass;
+            document.getElementById('c-pass').innerText = s.pass + " Scenarios";
+            document.getElementById('p-fail').innerText = s.pFail;
+            document.getElementById('c-fail').innerText = s.fail + " Scenarios";
+            document.getElementById('p-pending').innerText = s.pPending;
+            document.getElementById('c-pending').innerText = s.pending + " Scenarios";
+            document.getElementById('p-blocker').innerText = s.pBlocker;
+            document.getElementById('c-blocker').innerText = s.blocker + " Scenarios";
+            document.getElementById('statsGrid').style.display = 'grid';
+        }
+
+        function generateParagraph(s, b) {
+            const report = `Berdasarkan hasil pengujian terbaru, sistem mencatat Pass Rate sebesar ${s.pPass} (${s.pass} skenario lulus). ` +
+                `Saat ini terdapat ${s.fail} skenario FAIL (${s.pFail}) dan ${s.blocker} skenario BLOCKER yang menghambat jalannya testing. ` +
+                `Ditemukan total ${b.total} temuan bug, di mana ${b.critical} di antaranya berkategori CRITICAL. ` +
+                `Seluruh bug telah tercatat dan sedang dalam tahap penanganan oleh masing-masing PIC (Assign To).`;
+
+            document.getElementById('textReport').innerText = report;
+            document.getElementById('reportBox').style.display = 'block';
+        }
+
+        function formatPercent(val) {
+            if (typeof val === 'number') return (val * 100).toFixed(1) + '%';
+            return val || '0%';
+        }
+
+        function getCellValue(sheet, addr) {
+            return sheet[addr] ? sheet[addr].v : 0;
+        }
+
+        function getSevCol(s) {
+            const v = (s || '').toLowerCase();
+            if (v.includes('crit')) return '#e74c3c';
+            if (v.includes('high') || v.includes('major')) return '#e67e22';
+            return '#95a5a6';
+        }
+
+        function copyReport() {
+            const text = document.getElementById('textReport').innerText;
+            navigator.clipboard.writeText(text);
+            alert("Report berhasil disalin!");
+        }
+    </script>
+</body>
+
+</html> -->
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>QA Executive Report - Template Version</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .upload-box {
+            border: 2px dashed #1a73e8;
+            padding: 25px;
+            text-align: center;
+            border-radius: 10px;
+            background: #f8fbff;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .upload-box:hover {
+            background: #eef5ff;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+            display: none;
+        }
+
+        .stat-card {
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            color: white;
+        }
+
+        .pass {
+            background: #2ecc71;
+        }
+
+        .fail {
+            background: #e74c3c;
+        }
+
+        .pending {
+            background: #f1c40f;
+            color: #333;
+        }
+
+        .blocker {
+            background: #34495e;
+        }
+
+        .stat-card .percent {
+            display: block;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        /* Report Box Styling agar mirip screenshot */
+        .report-box {
+            margin-top: 30px;
+            padding: 25px;
+            background: #e7f0ff;
+            border-radius: 8px;
+            display: none;
+            color: #2c3e50;
+        }
+
+        .report-box h3 {
+            margin-top: 0;
+            font-size: 16px;
+            border-bottom: 1px solid #ccd6e0;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        #textReport {
+            font-size: 14px;
+            white-space: pre-wrap;
+            font-family: inherit;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            display: none;
+            margin-top: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h2>QA Scenario Executive Dashboard</h2>
+            <div class="upload-box" onclick="document.getElementById('excelFile').click()">
+                <p id="status-info">Silakan upload file Excel pengujian Anda</p>
+                <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="handleFile(event)">
+            </div>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card pass">
+                <h4>Pass Rate</h4><span class="percent" id="p-pass">0%</span><small id="c-pass">0</small>
+            </div>
+            <div class="stat-card fail">
+                <h4>Fail Rate</h4><span class="percent" id="p-fail">0%</span><small id="c-fail">0</small>
+            </div>
+            <div class="stat-card pending">
+                <h4>Pending Rate</h4><span class="percent" id="p-pending">0%</span><small id="c-pending">0</small>
+            </div>
+            <div class="stat-card blocker">
+                <h4>Blocker Rate</h4><span class="percent" id="p-blocker">0%</span><small id="c-blocker">0</small>
+            </div>
+        </div>
+
+        <div class="report-box" id="reportBox">
+            <h3>📝 Preview Report (Siap Copy)</h3>
+            <pre id="textReport"></pre>
+            <button onclick="copyReport()"
+                style="margin-top:10px; padding:8px 15px; cursor:pointer; background:#1a73e8; color:white; border:none; border-radius:4px;">Copy
+                Report</button>
+        </div>
+
+        <div class="table-wrap" id="tableWrap">
+            <h3>Detailed Bug Records</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Severity</th>
+                        <th>Assign To</th>
+                        <th>Actual Result</th>
+                        <th>Expected Result</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="bugBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            let rawName = file.name.replace(/\.[^/.]+$/, "");
+            let cleanName = rawName.replace(/test|skenario|scenario/gi, "").trim();
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                let stats = { total: 0, pass: 0, fail: 0, pending: 0, blocker: 0, pPass: '0%', pFail: '0%', pPending: '0%' };
+                let bugs = { total: 0, list: [] };
+
+                const wsStats = workbook.Sheets["Statistic"];
+                if (wsStats) {
+                    stats.total = getCellValue(wsStats, 'C8'); // Total Scenario
+                    stats.pass = getCellValue(wsStats, 'C9');
+                    stats.pPass = formatPercent(getCellValue(wsStats, 'C10'));
+                    stats.fail = getCellValue(wsStats, 'C11');
+                    stats.pFail = formatPercent(getCellValue(wsStats, 'C12'));
+                    stats.pending = getCellValue(wsStats, 'C13');
+                    stats.pPending = formatPercent(getCellValue(wsStats, 'C14'));
+                    stats.blocker = getCellValue(wsStats, 'C15');
+                    stats.pBlocker = formatPercent(getCellValue(wsStats, 'C16'));
+                    renderStatsUI(stats);
+                }
+
+                const wsBugs = workbook.Sheets["Bug List"];
+                if (wsBugs) {
+                    const bugJson = XLSX.utils.sheet_to_json(wsBugs, { header: "A" });
+                    const tbody = document.getElementById('bugBody');
+                    tbody.innerHTML = '';
+
+                    bugJson.slice(1).forEach(row => {
+                        if (row.D) {
+                            bugs.total++;
+                            // Mengambil issue bug untuk poin catatan
+                            if (bugs.list.length < 2 && row.H) bugs.list.push(row.H);
+
+                            tbody.innerHTML += `<tr>
+                            <td><b>${row.D}</b></td>
+                            <td><span class="badge" style="background:${getSevCol(row.F)}">${row.F || ''}</span></td>
+                            <td>${row.H || '-'}</td>
+                            <td><small>${row.K || '-'}</small></td>
+                            <td>${row.I || '-'}</td>
+                            <td><b>${row.O || '-'}</b></td>
+                        </tr>`;
+                        }
+                    });
+                    document.getElementById('tableWrap').style.display = 'block';
+                }
+
+                generateParagraph(stats, bugs, cleanName);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // FUNGSI UTAMA YANG DISESUAIKAN DENGAN SCREENSHOT
+        function generateParagraph(s, b, fileName) {
+            const report = `[Test Report]
+${fileName}
+Selamat sore semuanya, ijin melampirkan hasil testing terkait ${fileName.toLowerCase()}
+
+Number of test cases
+${s.total}
+Pass
+Total: ${s.pass}, Percentage: ${s.pPass}
+Fail
+Total: ${s.fail}, Percentage: ${s.pFail}
+Pending
+Total: ${s.pending}, Percentage: ${s.pPending}
+
+Dengan catatan
+
+
+Terimakasih.`;
+
+            document.getElementById('textReport').innerText = report;
+            document.getElementById('reportBox').style.display = 'block';
+        }
+
+        function renderStatsUI(s) {
+            document.getElementById('p-pass').innerText = s.pPass;
+            document.getElementById('c-pass').innerText = s.pass + " Scenarios";
+            document.getElementById('p-fail').innerText = s.pFail;
+            document.getElementById('c-fail').innerText = s.fail + " Scenarios";
+            document.getElementById('p-pending').innerText = s.pPending;
+            document.getElementById('c-pending').innerText = s.pending + " Scenarios";
+            document.getElementById('p-blocker').innerText = s.pBlocker;
+            document.getElementById('c-blocker').innerText = s.blocker + " Scenarios";
+            document.getElementById('statsGrid').style.display = 'grid';
+        }
+
+        function formatPercent(val) {
+            if (typeof val === 'number') return (val * 100).toFixed(2) + '%';
+            return val || '0.00%';
+        }
+
+        function getCellValue(sheet, addr) {
+            return sheet[addr] ? sheet[addr].v : 0;
+        }
+
+        function getSevCol(s) {
+            const v = (s || '').toLowerCase();
+            if (v.includes('crit')) return '#e74c3c';
+            if (v.includes('high') || v.includes('major')) return '#e67e22';
+            return '#95a5a6';
+        }
+
+        function copyReport() {
+            const text = document.getElementById('textReport').innerText;
+            navigator.clipboard.writeText(text);
+            alert("Report disalin ke clipboard!");
+        }
+    </script>
+</body>
+
+</html> -->
+
+
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>QA Executive Dashboard - Environment & Auto-Notes</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; padding: 20px; color: #333; line-height: 1.6; }
+        .container { max-width: 1200px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        
+        /* Control Panel */
+        .control-panel { display: flex; gap: 20px; align-items: flex-end; margin-bottom: 25px; background: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #e0e0e0; }
+        .input-group { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+        select, textarea { padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; }
+        textarea { height: 80px; resize: vertical; }
+
+        .upload-box { border: 2px dashed #1a73e8; padding: 20px; text-align: center; border-radius: 10px; background: #f8fbff; cursor: pointer; flex: 1; transition: 0.3s; }
+        .upload-box:hover { background: #eef5ff; }
+        input[type="file"] { display: none; }
+
+        /* Stats & Report */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 25px; display: none; }
+        .stat-card { padding: 20px; border-radius: 12px; text-align: center; color: white; }
+        .pass { background: #2ecc71; } .fail { background: #e74c3c; } .pending { background: #f1c40f; color: #333; } .blocker { background: #34495e; }
+        .stat-card .percent { display: block; font-size: 32px; font-weight: bold; }
+
+        .report-box { margin-top: 30px; padding: 25px; background: #e7f0ff; border-radius: 8px; display: none; }
+        pre { font-size: 14px; white-space: pre-wrap; font-family: inherit; margin: 0; }
+        .copy-btn { margin-top: 15px; padding: 10px 20px; background: #1a73e8; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
+        .table-wrap { overflow-x: auto; display: none; margin-top: 30px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 style="text-align:center;">QA Scenario Executive Dashboard</h2>
+
+    <div class="control-panel">
+        <div class="input-group">
+            <label><b>1. Pilih Environment:</b></label>
+            <select id="envSelect" onchange="updateReportIfDataExists()">
+                <option value="Dev">Development (Dev)</option>
+                <option value="Staging" selected>Staging</option>
+                <option value="UAT">User Acceptance Testing (UAT)</option>
+                <option value="Production">Production</option>
+            </select>
+        </div>
+
+        <div class="input-group" style="flex: 2;">
+            <label><b>2. Catatan Tambahan (Enter untuk poin baru):</b></label>
+            <textarea id="noteInput" placeholder="Contoh: Bug login di fix&#10;Masih ada issue di payment" oninput="updateReportIfDataExists()"></textarea>
+        </div>
+
+        <div class="upload-box" onclick="document.getElementById('excelFile').click()">
+            <p id="status-info"><b>3. Upload File Excel</b></p>
+            <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="handleFile(event)">
+        </div>
+    </div>
+
+    <div class="stats-grid" id="statsGrid">
+        <div class="stat-card pass"><h4>Pass Rate</h4><span class="percent" id="p-pass">0%</span><small id="c-pass">0</small></div>
+        <div class="stat-card fail"><h4>Fail Rate</h4><span class="percent" id="p-fail">0%</span><small id="c-fail">0</small></div>
+        <div class="stat-card pending"><h4>Pending Rate</h4><span class="percent" id="p-pending">0%</span><small id="c-pending">0</small></div>
+        <div class="stat-card blocker"><h4>Blocker Rate</h4><span class="percent" id="p-blocker">0%</span><small id="c-blocker">0</small></div>
+    </div>
+
+    <div class="report-box" id="reportBox">
+        <h3 style="margin-top:0;">📝 Preview Report</h3>
+        <pre id="textReport"></pre>
+        <button class="copy-btn" onclick="copyReport()">Copy Report to Clipboard</button>
+    </div>
+
+    <div class="table-wrap" id="tableWrap">
+        <h3>Detailed Bug Records</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Severity</th>
+                    <th>Assign To</th>
+                    <th>Actual Result</th>
+                    <th>Expected Result</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="bugBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let globalData = null; // Menyimpan data agar bisa diupdate saat dropdown/notes berubah
+
+    function handleFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        let rawName = file.name.replace(/\.[^/.]+$/, ""); 
+        let cleanName = rawName.replace(/test|skenario|scenario/gi, "").trim();
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            
+            let stats = { total: 0, pass: 0, fail: 0, pending: 0, blocker: 0, pPass: '0%', pFail: '0%', pPending: '0%' };
+            let bugsCount = 0;
+
+            const wsStats = workbook.Sheets["Statistic"];
+            if (wsStats) {
+                stats.total = getCellValue(wsStats, 'C8');
+                stats.pass = getCellValue(wsStats, 'C9');
+                stats.pPass = formatPercent(getCellValue(wsStats, 'C10'));
+                stats.fail = getCellValue(wsStats, 'C11');
+                stats.pFail = formatPercent(getCellValue(wsStats, 'C12'));
+                stats.pending = getCellValue(wsStats, 'C13');
+                stats.pPending = formatPercent(getCellValue(wsStats, 'C14'));
+                stats.blocker = getCellValue(wsStats, 'C15');
+                stats.pBlocker = formatPercent(getCellValue(wsStats, 'C16'));
+            }
+
+            const wsBugs = workbook.Sheets["Bug List"];
+            const tbody = document.getElementById('bugBody');
+            tbody.innerHTML = '';
+            if (wsBugs) {
+                const bugJson = XLSX.utils.sheet_to_json(wsBugs, {header: "A"});
+                bugJson.slice(1).forEach(row => {
+                    if (row.D) {
+                        bugsCount++;
+                        tbody.innerHTML += `<tr>
+                            <td><b>${row.D}</b></td>
+                            <td>${row.F || ''}</td>
+                            <td>${row.H || '-'}</td>
+                            <td><small>${row.K || '-'}</small></td>
+                            <td>${row.L || '-'}</td>
+                            <td>${row.O || '-'}</td>
+                        </tr>`;
                     }
                 });
-                document.getElementById('tableWrap').style.display = 'block';
             }
+
+            globalData = { stats, bugsCount, cleanName };
+            renderUI();
         };
         reader.readAsArrayBuffer(file);
     }
 
-    function updateStat(id, sheet, pAddr, cAddr) {
-        let percentValue = getCellValue(sheet, pAddr);
-        let countValue = getCellValue(sheet, cAddr);
+    function renderUI() {
+        if (!globalData) return;
+        
+        const { stats, cleanName } = globalData;
+        
+        // Render Cards
+        document.getElementById('p-pass').innerText = stats.pPass;
+        document.getElementById('c-pass').innerText = stats.pass + " Scenarios";
+        document.getElementById('p-fail').innerText = stats.pFail;
+        document.getElementById('c-fail').innerText = stats.fail + " Scenarios";
+        document.getElementById('p-pending').innerText = stats.pPending;
+        document.getElementById('c-pending').innerText = stats.pending + " Scenarios";
+        document.getElementById('p-blocker').innerText = stats.pBlocker;
+        document.getElementById('c-blocker').innerText = stats.blocker + " Scenarios";
+        
+        document.getElementById('statsGrid').style.display = 'grid';
+        document.getElementById('tableWrap').style.display = 'block';
+        
+        generateParagraph();
+    }
 
-        // Format persentase jika berupa angka desimal (misal 1 -> 100%)
-        if (typeof percentValue === 'number') {
-            percentValue = (percentValue * 100).toFixed(2) + '%';
+    function generateParagraph() {
+        const { stats, bugsCount, cleanName } = globalData;
+        const env = document.getElementById('envSelect').value;
+        const rawNotes = document.getElementById('noteInput').value;
+
+        // Proses Catatan: Pisahkan berdasarkan Enter dan tambahkan bullet points
+        let processedNotes = "• Tidak ada catatan tambahan.";
+        if (rawNotes.trim() !== "") {
+            processedNotes = rawNotes.split('\n')
+                                     .filter(line => line.trim() !== "")
+                                     .map(line => `• ${line.trim()}`)
+                                     .join('\n');
         }
 
-        document.getElementById('p-' + id).innerText = percentValue || '0%';
-        document.getElementById('c-' + id).innerText = (countValue || '0') + ' Scenarios';
+        const report = `[Test Report]
+${cleanName} ${env}
+Selamat sore semuanya, ijin melampirkan hasil testing terkait ${cleanName.toLowerCase()} pada environment ${env}
+
+Number of test cases
+${stats.total}
+
+Pass
+Total: ${stats.pass}, Percentage: ${stats.pPass}
+
+Fail
+Total: ${stats.fail}, Percentage: ${stats.pFail}
+
+Pending
+Total: ${stats.pending}, Percentage: ${stats.pPending}
+
+Dengan catatan
+${processedNotes}
+
+Terimakasih.`;
+        
+        document.getElementById('textReport').innerText = report;
+        document.getElementById('reportBox').style.display = 'block';
     }
 
-    function getCellValue(sheet, address) {
-        const cell = sheet[address];
-        return cell ? cell.v : null;
+    function updateReportIfDataExists() {
+        if (globalData) generateParagraph();
     }
 
-    function getSevCol(s) {
-        const v = (s||'').toLowerCase();
-        if(v.includes('crit')) return '#e74c3c';
-        if(v.includes('major') || v.includes('high')) return '#e67e22';
-        return '#95a5a6';
+    function formatPercent(val) {
+        if (typeof val === 'number') return (val * 100).toFixed(2) + '%';
+        return val || '0.00%';
+    }
+
+    function getCellValue(sheet, addr) {
+        return sheet[addr] ? sheet[addr].v : 0;
+    }
+
+    function copyReport() {
+        const text = document.getElementById('textReport').innerText;
+        navigator.clipboard.writeText(text);
+        alert("Report disalin!");
     }
 </script>
 </body>
