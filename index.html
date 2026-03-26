@@ -943,7 +943,7 @@ Terimakasih.`;
 
 
 
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -1174,4 +1174,388 @@ Terimakasih.`;
     }
 </script>
 </body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>QA Executive Dashboard - Drive & Upload Version</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+            margin-bottom: 25px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        select,
+        textarea,
+        input[type="text"] {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-family: inherit;
+        }
+
+        .action-area {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            margin-top: 10px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .btn-drive {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-drive:hover {
+            background: #1557b0;
+        }
+
+        .upload-box {
+            border: 2px dashed #1a73e8;
+            padding: 10px;
+            text-align: center;
+            border-radius: 6px;
+            background: #f8fbff;
+            cursor: pointer;
+            flex: 1;
+            font-size: 14px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+            display: none;
+        }
+
+        .stat-card {
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            color: white;
+        }
+
+        .pass {
+            background: #2ecc71;
+        }
+
+        .fail {
+            background: #e74c3c;
+        }
+
+        .pending {
+            background: #f1c40f;
+            color: #333;
+        }
+
+        .blocker {
+            background: #34495e;
+        }
+
+        .stat-card .percent {
+            display: block;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .report-box {
+            margin-top: 30px;
+            padding: 25px;
+            background: #e7f0ff;
+            border-radius: 8px;
+            display: none;
+        }
+
+        pre {
+            font-size: 14px;
+            white-space: pre-wrap;
+            font-family: inherit;
+            margin: 0;
+        }
+
+        .copy-btn {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            display: none;
+            margin-top: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 style="text-align:center;">QA Scenario Executive Dashboard</h2>
+
+        <div class="control-panel">
+            <div class="input-group">
+                <label><b>1. Environment:</b></label>
+                <select id="envSelect" onchange="updateReportIfDataExists()">
+                    <option value="Dev">Dev</option>
+                    <option value="Staging" selected>Staging</option>
+                    <option value="UAT">UAT</option>
+                    <option value="Production">Production</option>
+                </select>
+            </div>
+
+            <div class="input-group" style="flex: 2;">
+                <label><b>2. Catatan (Enter untuk poin baru):</b></label>
+                <textarea id="noteInput" placeholder="Ketik catatan di sini..."
+                    oninput="updateReportIfDataExists()"></textarea>
+            </div>
+
+            <div class="action-area">
+                <div class="input-group" style="flex: 3;">
+                    <input type="text" id="driveLink"
+                        placeholder="Paste Link Google Sheets (Publish to Web) di sini...">
+                </div>
+                <button class="btn-drive" onclick="fetchFromDrive()">Fetch from Drive</button>
+                <div style="align-self: center; font-weight: bold;">ATAU</div>
+                <div class="upload-box" onclick="document.getElementById('excelFile').click()">
+                    <span id="status-info">Upload Manual</span>
+                    <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="handleFile(event)">
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card pass">
+                <h4>Pass Rate</h4><span class="percent" id="p-pass">0%</span><small id="c-pass">0</small>
+            </div>
+            <div class="stat-card fail">
+                <h4>Fail Rate</h4><span class="percent" id="p-fail">0%</span><small id="c-fail">0</small>
+            </div>
+            <div class="stat-card pending">
+                <h4>Pending Rate</h4><span class="percent" id="p-pending">0%</span><small id="c-pending">0</small>
+            </div>
+            <div class="stat-card blocker">
+                <h4>Blocker Rate</h4><span class="percent" id="p-blocker">0%</span><small id="c-blocker">0</small>
+            </div>
+        </div>
+
+        <div class="report-box" id="reportBox">
+            <h3>📝 Preview Report</h3>
+            <pre id="textReport"></pre>
+            <button class="copy-btn" onclick="copyReport()">Copy Report</button>
+        </div>
+
+        <div class="table-wrap" id="tableWrap">
+            <h3>Detailed Bug Records</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Severity</th>
+                        <th>Assign To</th>
+                        <th>Actual Result</th>
+                        <th>Expected Result</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="bugBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let globalData = null;
+
+        // FUNGSI UNTUK AMBIL DATA DARI DRIVE
+        async function fetchFromDrive() {
+            const url = document.getElementById('driveLink').value;
+            if (!url) return alert("Silakan paste link Publish to Web terlebih dahulu!");
+
+            document.getElementById('status-info').innerText = "Connecting to Drive...";
+
+            try {
+                // Menggunakan Proxy CORS gratis agar browser tidak memblokir request
+                const proxy = "https://api.allorigins.win/raw?url=";
+                const response = await fetch(proxy + encodeURIComponent(url));
+
+                if (!response.ok) throw new Error("Gagal mengambil file.");
+
+                const arrayBuffer = await response.arrayBuffer();
+                const data = new Uint8Array(arrayBuffer);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                // Nama file default jika via link
+                processData(workbook, "Drive Project");
+                document.getElementById('status-info').innerText = "Drive Data Loaded!";
+            } catch (error) {
+                console.error(error);
+                alert("Error: Pastikan link sudah di-Publish as Excel dan bisa diakses publik.");
+                document.getElementById('status-info').innerText = "Fetch Failed";
+            }
+        }
+
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            let rawName = file.name.replace(/\.[^/.]+$/, "");
+            let cleanName = rawName.replace(/test|skenario|scenario/gi, "").trim();
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                processData(workbook, cleanName);
+                document.getElementById('status-info').innerText = "File: " + file.name;
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function processData(workbook, name) {
+            let stats = { total: 0, pass: 0, fail: 0, pending: 0, blocker: 0, pPass: '0%', pFail: '0%', pPending: '0%' };
+            let bugsCount = 0;
+
+            const wsStats = workbook.Sheets["Statistic"];
+            if (wsStats) {
+                stats.total = getCellValue(wsStats, 'C8');
+                stats.pass = getCellValue(wsStats, 'C9');
+                stats.pPass = formatPercent(getCellValue(wsStats, 'C10'));
+                stats.fail = getCellValue(wsStats, 'C11');
+                stats.pFail = formatPercent(getCellValue(wsStats, 'C12'));
+                stats.pending = getCellValue(wsStats, 'C13');
+                stats.pPending = formatPercent(getCellValue(wsStats, 'C14'));
+                stats.blocker = getCellValue(wsStats, 'C15');
+                stats.pBlocker = formatPercent(getCellValue(wsStats, 'C16'));
+            }
+
+            const wsBugs = workbook.Sheets["Bug List"];
+            const tbody = document.getElementById('bugBody');
+            tbody.innerHTML = '';
+            if (wsBugs) {
+                const bugJson = XLSX.utils.sheet_to_json(wsBugs, { header: "A" });
+                bugJson.slice(1).forEach(row => {
+                    if (row.D) {
+                        bugsCount++;
+                        tbody.innerHTML += `<tr>
+                        <td><b>${row.D}</b></td>
+                        <td>${row.F || ''}</td>
+                        <td>${row.H || '-'}</td>
+                        <td><small>${row.K || '-'}</small></td>
+                        <td>${row.L || '-'}</td>
+                        <td>${row.O || '-'}</td>
+                    </tr>`;
+                    }
+                });
+            }
+
+            globalData = { stats, bugsCount, cleanName: name };
+            renderUI();
+        }
+
+        // (Fungsi renderUI, generateParagraph, formatPercent, getCellValue, copyReport tetap sama seperti sebelumnya)
+        function renderUI() {
+            if (!globalData) return;
+            const { stats } = globalData;
+            document.getElementById('p-pass').innerText = stats.pPass;
+            document.getElementById('c-pass').innerText = stats.pass + " Scenarios";
+            document.getElementById('p-fail').innerText = stats.pFail;
+            document.getElementById('c-fail').innerText = stats.fail + " Scenarios";
+            document.getElementById('p-pending').innerText = stats.pPending;
+            document.getElementById('c-pending').innerText = stats.pending + " Scenarios";
+            document.getElementById('p-blocker').innerText = stats.pBlocker;
+            document.getElementById('c-blocker').innerText = stats.blocker + " Scenarios";
+            document.getElementById('statsGrid').style.display = 'grid';
+            document.getElementById('tableWrap').style.display = 'block';
+            generateParagraph();
+        }
+
+        function generateParagraph() {
+            const { stats, cleanName } = globalData;
+            const env = document.getElementById('envSelect').value;
+            const rawNotes = document.getElementById('noteInput').value;
+            let processedNotes = "• Tidak ada catatan tambahan.";
+            if (rawNotes.trim() !== "") {
+                processedNotes = rawNotes.split('\n').filter(l => l.trim() !== "").map(l => `• ${l.trim()}`).join('\n');
+            }
+            const report = `[Test Report]\n${cleanName} ${env}\nSelamat sore semuanya, ijin melampirkan hasil testing terkait ${cleanName.toLowerCase()} pada environment ${env}\n\nNumber of test cases\n${stats.total}\n\nPass\nTotal: ${stats.pass}, Percentage: ${stats.pPass}\n\nFail\nTotal: ${stats.fail}, Percentage: ${stats.pFail}\n\nPending\nTotal: ${stats.pending}, Percentage: ${stats.pPending}\n\nDengan catatan\n${processedNotes}\n\nTerimakasih.`;
+            document.getElementById('textReport').innerText = report;
+            document.getElementById('reportBox').style.display = 'block';
+        }
+
+        function updateReportIfDataExists() { if (globalData) generateParagraph(); }
+        function formatPercent(val) { return typeof val === 'number' ? (val * 100).toFixed(2) + '%' : val || '0.00%'; }
+        function getCellValue(sheet, addr) { return sheet[addr] ? sheet[addr].v : 0; }
+        function copyReport() { navigator.clipboard.writeText(document.getElementById('textReport').innerText); alert("Report disalin!"); }
+    </script>
+</body>
+
 </html>
